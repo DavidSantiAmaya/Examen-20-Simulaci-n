@@ -3,7 +3,6 @@
 public class Aldeano : MonoBehaviour
 {
     [Header("Aldeano")]
-    public float energy = 20f;
     public float age = 0f;
     public float maxAge = 40f;
     public float speed = 1f;
@@ -11,7 +10,6 @@ public class Aldeano : MonoBehaviour
 
     [Header("Madera")]
     public float carryingWood = 0f;
-    public float minWoodToLeaveVillage = 25f;
 
     private float villageStopDistance = 0.2f;
     private float treeHarvestDistance = 0.45f;
@@ -26,8 +24,6 @@ public class Aldeano : MonoBehaviour
     private Aldea aldea;
     private Arbol targetTree;
 
-    private bool wolfDetectedThisFrame = false;
-    private bool lastWolfDetected = false;
 
     private int wolfMask;
     private int treeMask;
@@ -37,7 +33,7 @@ public class Aldeano : MonoBehaviour
     {
         wolfMask = LayerMask.GetMask("Lobos");
         treeMask = LayerMask.GetMask("Arboles");
-        aldea = BuscarAldeaPorLayer();
+        aldea = BuscarAldea();
         destination = aldea != null ? aldea.GetRandomPointInsideVillage() : transform.position;
     }
 
@@ -46,9 +42,6 @@ public class Aldeano : MonoBehaviour
         if (!isAlive) return;
 
         this.h = h;
-
-        if (aldea == null)
-            aldea = BuscarAldeaPorLayer();
 
         EvaluarEstado();
         EjecutarEstado();
@@ -63,7 +56,7 @@ public class Aldeano : MonoBehaviour
         switch (currentState)
         {
             case AldeanoStates.EnAldea:
-                ExplorarAldea();
+                MoverDentroDeLaAldea();
                 break;
 
             case AldeanoStates.YendoAlBosque:
@@ -84,7 +77,7 @@ public class Aldeano : MonoBehaviour
         }
     }
 
-    private Aldea BuscarAldeaPorLayer()
+    private Aldea BuscarAldea()
     {
         Aldea[] aldeas = FindObjectsByType<Aldea>(FindObjectsSortMode.InstanceID);
         int layerAldea = LayerMask.NameToLayer("Aldea");
@@ -103,14 +96,16 @@ public class Aldeano : MonoBehaviour
         if (RevisarLoboYHuir())
             return;
 
+        if (currentState == AldeanoStates.Huyendo)
+            return;
+
         if (carryingWood > 0f)
         {
             currentState = AldeanoStates.Regresando;
-            IrAlCentroDeLaAldea();
             return;
         }
 
-        if (aldea != null && aldea.storedWood < minWoodToLeaveVillage)
+        if (aldea != null )
         {
             if (targetTree == null || !targetTree.isAlive)
                 targetTree = BuscarArbolMasCercano();
@@ -133,27 +128,25 @@ public class Aldeano : MonoBehaviour
             }
         }
 
-        currentState = AldeanoStates.EnAldea;
+        currentState = AldeanoStates.EnAldea; //
     }
 
     private bool RevisarLoboYHuir()
     {
-        bool hayLobo = HayLoboCerca();
-        wolfDetectedThisFrame = hayLobo;
+        if (wolfMask == 0)
+            return false;
 
-        if (hayLobo != lastWolfDetected)
-        {
-            lastWolfDetected = hayLobo;
-        }
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            transform.position,
+            visionRange,
+            wolfMask
+        );
 
-        if (hayLobo)
-        {
-            currentState = AldeanoStates.Huyendo;
-            IrAlCentroDeLaAldea();
-            return true;
-        }
+        if (hits.Length == 0)
+            return false;
 
-        return false;
+        currentState = AldeanoStates.Huyendo;
+        return true;
     }
 
     private void IrAlCentroDeLaAldea()
@@ -162,7 +155,7 @@ public class Aldeano : MonoBehaviour
         destination = aldea.transform.position;
     }
 
-    private void ExplorarAldea()
+    private void MoverDentroDeLaAldea()
     {
         if (aldea == null) return;
 
@@ -244,7 +237,7 @@ public class Aldeano : MonoBehaviour
 
         IrAlCentroDeLaAldea();
 
-        if (!wolfDetectedThisFrame && Vector3.Distance(transform.position, aldea.transform.position) <= 0.8f)
+        if (Vector3.Distance(transform.position, aldea.transform.position) <= 0.8f)
         {
             currentState = AldeanoStates.EnAldea;
             destination = aldea.GetRandomPointInsideVillage();
@@ -255,7 +248,8 @@ public class Aldeano : MonoBehaviour
     {
         currentState = AldeanoStates.EnAldea;
         targetTree = null;
-        destination = aldea != null ? aldea.GetRandomPointInsideVillage() : transform.position;
+        if (aldea != null)
+            destination = aldea.GetRandomPointInsideVillage();
     }
 
     private void Mover()
@@ -276,8 +270,6 @@ public class Aldeano : MonoBehaviour
             destination,
             moveSpeed * h
         );
-
-        energy -= speed * 0.2f * h;
     }
 
     private void Envejecer()
@@ -287,7 +279,7 @@ public class Aldeano : MonoBehaviour
 
     private void RevisarEstadoFinal()
     {
-        if (age > maxAge || energy <= 0f)
+        if (age > maxAge)
             Morir();
     }
 
@@ -298,20 +290,6 @@ public class Aldeano : MonoBehaviour
         isAlive = false;
         currentState = AldeanoStates.Muerto;
         Destroy(gameObject);
-    }
-
-    private bool HayLoboCerca()
-    {
-        if (wolfMask == 0)
-            return false;
-
-        Collider2D[] hits = Physics2D.OverlapCircleAll(
-            transform.position,
-            visionRange,
-            wolfMask
-        );
-
-        return hits.Length > 0;
     }
 
     private Arbol BuscarArbolMasCercano()
