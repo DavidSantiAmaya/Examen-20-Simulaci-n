@@ -140,7 +140,7 @@ public class Lodo : MonoBehaviour
 
         destinp = objetivo.transform.position;
 
-        if (Vector3.Distance(transform.position, objetivo.transform.position) <= attackRange)
+        if (Vector3.Distance(transform.position, objetivo.transform.position) <= rangoAtaque)
         {
             objetivo.Morir();
             energia = Mathf.Min(energia + 5f, maxEnergia);
