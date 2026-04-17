@@ -2,7 +2,7 @@
 - Project name: Examen-20-Simulaci-n
 - Unity version: Unity 6000.3.6f1
 - Active game object:
-  - Name: Bosque
+  - Name: Lobo
   - Tag: Untagged
-  - Layer: Bosque
+  - Layer: Lobos
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

@@ -4,7 +4,7 @@ public class Arbol : MonoBehaviour
 {
     [Header("Árbol")]
     public bool isAlive = true;
-    public float woodYield = 1f;
+    public float CantidadDeMadera = 1f;
 
     public float Harvest()
     {
@@ -12,6 +12,6 @@ public class Arbol : MonoBehaviour
 
         isAlive = false;
         Destroy(gameObject);
-        return woodYield;
+        return CantidadDeMadera;
     }
 }

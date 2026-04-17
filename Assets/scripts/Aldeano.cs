@@ -34,7 +34,7 @@ public class Aldeano : MonoBehaviour
         wolfMask = LayerMask.GetMask("Lobos");
         treeMask = LayerMask.GetMask("Arboles");
         aldea = BuscarAldea();
-        destination = aldea != null ? aldea.GetRandomPointInsideVillage() : transform.position;
+        destination = aldea != null ? aldea.ObtenerPuntoAleatorioAldea() : transform.position;
     }
 
     public void Simulate(float h)
@@ -160,7 +160,7 @@ public class Aldeano : MonoBehaviour
         if (aldea == null) return;
 
         if (Vector3.Distance(transform.position, destination) <= villageStopDistance)
-            destination = aldea.GetRandomPointInsideVillage();
+            destination = aldea.ObtenerPuntoAleatorioAldea();
     }
 
     private void IrAlArbol()
@@ -171,7 +171,7 @@ public class Aldeano : MonoBehaviour
         if (targetTree == null)
         {
             currentState = AldeanoStates.EnAldea;
-            destination = aldea != null ? aldea.GetRandomPointInsideVillage() : transform.position;
+            destination = aldea != null ? aldea.ObtenerPuntoAleatorioAldea() : transform.position;
             return;
         }
 
@@ -224,10 +224,10 @@ public class Aldeano : MonoBehaviour
 
         if (Vector3.Distance(transform.position, aldea.transform.position) <= 0.6f)
         {
-            aldea.DepositWood(carryingWood);
+            aldea.DepositoMadera(carryingWood);
             carryingWood = 0f;
             currentState = AldeanoStates.EnAldea;
-            destination = aldea.GetRandomPointInsideVillage();
+            destination = aldea.ObtenerPuntoAleatorioAldea();
         }
     }
 
@@ -240,7 +240,7 @@ public class Aldeano : MonoBehaviour
         if (Vector3.Distance(transform.position, aldea.transform.position) <= 0.8f)
         {
             currentState = AldeanoStates.EnAldea;
-            destination = aldea.GetRandomPointInsideVillage();
+            destination = aldea.ObtenerPuntoAleatorioAldea();
         }
     }
 
@@ -249,7 +249,7 @@ public class Aldeano : MonoBehaviour
         currentState = AldeanoStates.EnAldea;
         targetTree = null;
         if (aldea != null)
-            destination = aldea.GetRandomPointInsideVillage();
+            destination = aldea.ObtenerPuntoAleatorioAldea();
     }
 
     private void Mover()

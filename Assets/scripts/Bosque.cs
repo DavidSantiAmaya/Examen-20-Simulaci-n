@@ -3,10 +3,10 @@ using UnityEngine;
 public class Bosque : MonoBehaviour
 {
     [Header("Bosque")]
-    public int maxTrees = 20;
-    public float spawnInterval = 4f;
-    public float spawnRadius = 10f;
-    public GameObject treePrefab;
+    public int maxArboles = 20;
+    public float intervaloAparicion = 4f;
+    public float RangoDeAparicion = 10f;
+    public GameObject Prefab;
 
     private float timer;
 
@@ -14,34 +14,24 @@ public class Bosque : MonoBehaviour
     {
         timer += h;
 
-        if (timer < spawnInterval)
+        if (timer < intervaloAparicion)
             return;
 
         timer = 0f;
-        CrearArbolSiEsPosible();
+        CrearArboles();
     }
 
-    private void CrearArbolSiEsPosible()
+    private void CrearArboles()
     {
         Arbol[] arbolesActivos = FindObjectsByType<Arbol>(FindObjectsSortMode.InstanceID);
-        if (arbolesActivos.Length >= maxTrees)
+        if (arbolesActivos.Length >= maxArboles)
             return;
 
-        if (treePrefab == null)
+        if (Prefab == null)
             return;
 
-        Vector2 offset = Random.insideUnitCircle * spawnRadius;
+        Vector2 offset = Random.insideUnitCircle * RangoDeAparicion;
         Vector3 pos = transform.position + new Vector3(offset.x, offset.y, 0f);
-        Instantiate(treePrefab, pos, Quaternion.identity);
+        Instantiate(Prefab, pos, Quaternion.identity);
     }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, spawnRadius);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawSphere(transform.position, 0.2f);
-    }
-
 }

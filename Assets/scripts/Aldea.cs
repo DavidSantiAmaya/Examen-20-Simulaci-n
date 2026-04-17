@@ -3,46 +3,46 @@ using UnityEngine;
 public class Aldea : MonoBehaviour
 {
     [Header("Aldea")]
-    public float storedWood = 0f;
-    public float woodConsumptionPerSecond = 0.25f;
-    public float villageRadius = 3f;
-    public bool safeZoneActive = true;
+    public float maderaAlmacenada = 0f;
+    public float ConsumoMaderaPorSegundp = 0.25f;
+    public float RangoAldea = 3f;
+    public bool ActivarZona = true;
 
     public void Simulate(float h)
     {
         if (h <= 0f) return;
 
-        storedWood -= woodConsumptionPerSecond * h;
+        maderaAlmacenada -= ConsumoMaderaPorSegundp * h;
 
-        if (storedWood <= 0f)
+        if (maderaAlmacenada <= 0f)
         {
-            storedWood = 0f;
-            safeZoneActive = false;
+            maderaAlmacenada = 0f;
+            ActivarZona = false;
         }
         else
         {
-            safeZoneActive = true;
+            ActivarZona = true;
         }
     }
 
-    public void DepositWood(float amount)
+    public void DepositoMadera(float amount)
     {
         if (amount <= 0f) return;
 
-        storedWood += amount;
-        safeZoneActive = storedWood > 0f;
+        maderaAlmacenada += amount;
+        ActivarZona = maderaAlmacenada > 0f;
     }
 
-    public Vector3 GetRandomPointInsideVillage()
+    public Vector3 ObtenerPuntoAleatorioAldea()
     {
-        Vector2 offset = Random.insideUnitCircle * villageRadius;
+        Vector2 offset = Random.insideUnitCircle * RangoAldea;
         return transform.position + new Vector3(offset.x, offset.y, 0f);
     }
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, villageRadius);
+        Gizmos.DrawWireSphere(transform.position, RangoAldea);
 
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(transform.position, 0.2f);

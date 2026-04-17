@@ -3,38 +3,32 @@ using UnityEngine;
 public class Lodo : MonoBehaviour
 {
     [Header("Lobo")]
-    public float energy = 15f;
-    public float maxEnergy = 15f;
+    public float energia = 15f;
+    public float maxEnergia = 15f;
     public float age = 0f;
     public float maxAge = 30f;
     public float speed = 1.5f;
-    public float visionRange = 6f;
-    public float attackRange = 0.35f;
+    public float rangoVision = 6f;
+    private float rangoAtaque = 0.35f;
 
     [Header("Descanso")]
-    public float restRecoveryRate = 3f;
-    public float energyToWakeUp = 10f;
-
-    [Header("Depuración")]
-    public bool debugWolf = true;
+    public float Recuperacion = 3f;
+    public float topeDeEnergia = 10f;
 
     [Header("Estado")]
     public bool isAlive = true;
-    public LoboStates currentState = LoboStates.Patrullando;
+    public LoboStates estadoActual = LoboStates.Patrullando;
 
-    private Vector3 destination;
+    private Vector3 destinp;
     private float h;
     private Aldea aldea;
     private int aldeanoMask;
 
     private void Start()
     {
-        destination = transform.position;
+        destinp = transform.position;
         aldea = BuscarAldea();
         aldeanoMask = LayerMask.GetMask("Aldeanos");
-
-        if (aldeanoMask == 0 && debugWolf)
-            Debug.LogError($"[{name}] No existe la layer 'Aldeanos'.");
     }
 
     public void Simulate(float h)
@@ -55,7 +49,7 @@ public class Lodo : MonoBehaviour
 
     private void EjecutarEstado()
     {
-        switch (currentState)
+        switch (estadoActual)
         {
             case LoboStates.Patrullando:
                 Patrullar();
@@ -73,29 +67,29 @@ public class Lodo : MonoBehaviour
 
     private void EvaluarEstado()
     {
-        if (energy <= 0f)
+        if (energia <= 0f)
         {
-            currentState = LoboStates.Descansando;
+            estadoActual = LoboStates.Descansando;
             return;
         }
 
-        if (currentState == LoboStates.Descansando && energy < energyToWakeUp)
+        if (estadoActual == LoboStates.Descansando && energia < topeDeEnergia)
             return;
 
-        if (currentState == LoboStates.Descansando && energy >= energyToWakeUp)
-            currentState = LoboStates.Patrullando;
+        if (estadoActual == LoboStates.Descansando && energia >= topeDeEnergia)
+            estadoActual = LoboStates.Patrullando;
 
-        if (aldea != null && aldea.safeZoneActive)
+        if (aldea != null && aldea.ActivarZona)
         {
             float distanciaAldea = Vector3.Distance(transform.position, aldea.transform.position);
 
-            if (distanciaAldea < aldea.villageRadius)
+            if (distanciaAldea < aldea.RangoAldea)
             {
                 Vector3 alejarse = (transform.position - aldea.transform.position).normalized;
                 if (alejarse == Vector3.zero) alejarse = Vector3.right;
 
-                destination = transform.position + alejarse * visionRange;
-                currentState = LoboStates.Patrullando;
+                destinp = transform.position + alejarse * rangoVision;
+                estadoActual = LoboStates.Patrullando;
                 return;
             }
         }
@@ -103,23 +97,23 @@ public class Lodo : MonoBehaviour
         Aldeano aldeanoCercano = BuscarAldeanoMasCercano();
         if (aldeanoCercano != null)
         {
-            currentState = LoboStates.Cazando;
-            destination = aldeanoCercano.transform.position;
+            estadoActual = LoboStates.Cazando;
+            destinp = aldeanoCercano.transform.position;
             return;
         }
 
-        if (currentState != LoboStates.Descansando)
-            currentState = LoboStates.Patrullando;
+        if (estadoActual != LoboStates.Descansando)
+            estadoActual = LoboStates.Patrullando;
     }
 
     private void Patrullar()
     {
-        if (Vector3.Distance(transform.position, destination) < 0.15f)
+        if (Vector3.Distance(transform.position, destinp) < 0.15f)
         {
             Vector2 direccion = Random.insideUnitCircle.normalized;
             if (direccion == Vector2.zero) direccion = Vector2.right;
 
-            destination = transform.position + new Vector3(direccion.x, direccion.y, 0f) * visionRange;
+            destinp = transform.position + new Vector3(direccion.x, direccion.y, 0f) * rangoVision;
         }
     }
 
@@ -129,54 +123,54 @@ public class Lodo : MonoBehaviour
 
         if (objetivo == null)
         {
-            currentState = LoboStates.Patrullando;
+            estadoActual = LoboStates.Patrullando;
             return;
         }
 
-        if (aldea != null && aldea.safeZoneActive)
+        if (aldea != null && aldea.ActivarZona)
         {
             float distanciaAlCentro = Vector3.Distance(objetivo.transform.position, aldea.transform.position);
-            if (distanciaAlCentro < aldea.villageRadius)
+            if (distanciaAlCentro < aldea.RangoAldea)
             {
-                currentState = LoboStates.Patrullando;
-                destination = transform.position;
+                estadoActual = LoboStates.Patrullando;
+                destinp = transform.position;
                 return;
             }
         }
 
-        destination = objetivo.transform.position;
+        destinp = objetivo.transform.position;
 
         if (Vector3.Distance(transform.position, objetivo.transform.position) <= attackRange)
         {
             objetivo.Morir();
-            energy = Mathf.Min(energy + 5f, maxEnergy);
-            currentState = LoboStates.Patrullando;
+            energia = Mathf.Min(energia + 5f, maxEnergia);
+            estadoActual = LoboStates.Patrullando;
         }
     }
 
     private void Descansar()
     {
-        energy += restRecoveryRate * h;
+        energia += Recuperacion * h;
 
-        if (energy >= energyToWakeUp)
+        if (energia >= topeDeEnergia)
         {
-            energy = Mathf.Min(energy, maxEnergy);
-            currentState = LoboStates.Patrullando;
+            energia = Mathf.Min(energia, maxEnergia);
+            estadoActual = LoboStates.Patrullando;
         }
     }
 
     private void Mover()
     {
-        if (currentState == LoboStates.Descansando)
+        if (estadoActual == LoboStates.Descansando)
             return;
 
-        transform.position = Vector3.MoveTowards(transform.position, destination, speed * h);
-        energy -= speed * 0.2f * h;
+        transform.position = Vector3.MoveTowards(transform.position, destinp, speed * h);
+        energia -= speed * 0.2f * h;
 
-        if (energy <= 0f)
+        if (energia <= 0f)
         {
-            energy = 0f;
-            currentState = LoboStates.Descansando;
+            energia = 0f;
+            estadoActual = LoboStates.Descansando;
         }
     }
 
@@ -190,7 +184,7 @@ public class Lodo : MonoBehaviour
         if (age > maxAge)
         {
             isAlive = false;
-            currentState = LoboStates.Muerto;
+            estadoActual = LoboStates.Muerto;
             Destroy(gameObject);
         }
     }
@@ -202,7 +196,7 @@ public class Lodo : MonoBehaviour
 
         Collider2D[] hits = Physics2D.OverlapCircleAll(
             transform.position,
-            visionRange,
+            rangoVision,
             aldeanoMask
         );
 
@@ -216,10 +210,10 @@ public class Lodo : MonoBehaviour
             Aldeano a = hit.GetComponentInParent<Aldeano>();
             if (a == null || !a.isAlive) continue;
 
-            if (aldea != null && aldea.safeZoneActive)
+            if (aldea != null && aldea.ActivarZona)
             {
                 float distanciaAlCentro = Vector3.Distance(a.transform.position, aldea.transform.position);
-                if (distanciaAlCentro < aldea.villageRadius)
+                if (distanciaAlCentro < aldea.RangoAldea)
                     continue;
             }
 
@@ -231,9 +225,6 @@ public class Lodo : MonoBehaviour
             }
         }
 
-        if (debugWolf)
-            Debug.Log($"[{name}] Aldeanos detectados en rango: {(masCercano != null ? 1 : 0)}");
-
         return masCercano;
     }
 
@@ -244,8 +235,6 @@ public class Lodo : MonoBehaviour
         int layerAldea = LayerMask.NameToLayer("Aldea");
         if (layerAldea == -1)
         {
-            if (debugWolf)
-                Debug.LogError($"[{name}] No existe la layer 'Aldea'.");
             return null;
         }
 
@@ -261,12 +250,12 @@ public class Lodo : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, visionRange);
+        Gizmos.DrawWireSphere(transform.position, rangoVision);
 
         Gizmos.color = Color.red;
-        Gizmos.DrawSphere(destination, 0.2f);
+        Gizmos.DrawSphere(destinp, 0.2f);
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position, destination);
+        Gizmos.DrawLine(transform.position, destinp);
     }
 }
